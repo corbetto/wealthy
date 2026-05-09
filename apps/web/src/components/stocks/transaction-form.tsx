@@ -5,6 +5,7 @@ import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 import {
   Select,
   SelectContent,
@@ -19,6 +20,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { TickerSearch } from "./ticker-search";
 import { useCreateTransaction, useUpdateTransaction } from "@/lib/hooks/use-transactions";
 import type { Exchange, Transaction, TransactionType } from "@/lib/types";
 
@@ -27,9 +29,6 @@ interface TransactionFormProps {
   onClose: () => void;
   transaction?: Transaction;
 }
-
-const EXCHANGES: Exchange[] = ["US", "NZ", "AU"];
-const CURRENCIES: Record<Exchange, string> = { US: "USD", NZ: "NZD", AU: "AUD" };
 
 export function TransactionForm({ open, onClose, transaction }: TransactionFormProps) {
   const isEditing = !!transaction;
@@ -40,6 +39,7 @@ export function TransactionForm({ open, onClose, transaction }: TransactionFormP
   const [form, setForm] = useState({
     ticker: transaction?.ticker ?? "",
     exchange: (transaction?.exchange ?? "US") as Exchange,
+    currency: transaction?.currency ?? "USD",
     type: (transaction?.type ?? "buy") as TransactionType,
     quantity: transaction?.quantity?.toString() ?? "",
     price: transaction?.price?.toString() ?? "",
@@ -51,10 +51,11 @@ export function TransactionForm({ open, onClose, transaction }: TransactionFormP
   });
 
   function set(field: string, value: string) {
-    setForm((prev) => {
-      const next = { ...prev, [field]: value };
-      return next;
-    });
+    setForm((prev) => ({ ...prev, [field]: value }));
+  }
+
+  function handleTickerSelect(ticker: string, exchange: Exchange, currency: string) {
+    setForm((prev) => ({ ...prev, ticker, exchange, currency }));
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -66,7 +67,7 @@ export function TransactionForm({ open, onClose, transaction }: TransactionFormP
       quantity: parseFloat(form.quantity),
       price: parseFloat(form.price),
       fees: parseFloat(form.fees) || 0,
-      currency: CURRENCIES[form.exchange],
+      currency: form.currency,
       date: new Date(form.date).toISOString(),
       notes: form.notes,
     };
@@ -87,36 +88,18 @@ export function TransactionForm({ open, onClose, transaction }: TransactionFormP
           <DialogTitle>{isEditing ? "Edit Transaction" : "Add Transaction"}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1.5">
-              <Label htmlFor="ticker">Ticker Symbol</Label>
-              <Input
-                id="ticker"
-                placeholder="e.g. AAPL"
-                value={form.ticker}
-                onChange={(e) => set("ticker", e.target.value)}
-                required
-                className="uppercase"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label>Exchange</Label>
-              <Select
-                value={form.exchange}
-                onValueChange={(v) => set("exchange", v)}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {EXCHANGES.map((ex) => (
-                    <SelectItem key={ex} value={ex}>
-                      {ex} ({CURRENCIES[ex]})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+
+          {/* Ticker search — auto-fills exchange + currency */}
+          <div className="space-y-1.5">
+            <Label>Ticker Symbol</Label>
+            <TickerSearch value={form.ticker} onChange={handleTickerSelect} />
+            {form.ticker && (
+              <div className="flex items-center gap-2 pt-0.5">
+                <Badge variant="secondary">{form.exchange}</Badge>
+                <Badge variant="secondary">{form.currency}</Badge>
+                <span className="text-xs text-muted-foreground">auto-detected from ticker</span>
+              </div>
+            )}
           </div>
 
           <div className="grid grid-cols-2 gap-4">
@@ -159,7 +142,7 @@ export function TransactionForm({ open, onClose, transaction }: TransactionFormP
               />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="price">Price ({CURRENCIES[form.exchange]})</Label>
+              <Label htmlFor="price">Price ({form.currency})</Label>
               <Input
                 id="price"
                 type="number"

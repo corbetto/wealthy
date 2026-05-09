@@ -11,10 +11,19 @@ import (
 	"github.com/corbetto/wealthy/api/internal/models"
 )
 
+// TickerResult is a search suggestion from Yahoo Finance.
+type TickerResult struct {
+	Symbol   string `json:"symbol"`
+	Name     string `json:"name"`
+	Exchange string `json:"exchange"` // e.g. "NMS", "NZX", "ASX"
+	Type     string `json:"type"`     // e.g. "EQUITY", "ETF"
+}
+
 // Provider fetches market prices and FX rates.
 type Provider interface {
 	FetchPrices(tickers []string) ([]models.MarketPrice, error)
 	FetchFXRates(currencies []string) ([]models.FXRate, error)
+	SearchTickers(query string) ([]TickerResult, error)
 }
 
 // YahooProvider fetches data from Yahoo Finance's unofficial v8 API.
@@ -75,6 +84,59 @@ func (y *YahooProvider) FetchPrices(tickers []string) ([]models.MarketPrice, err
 		})
 	}
 	return prices, nil
+}
+
+type yahooSearchResponse struct {
+	Quotes []struct {
+		Symbol    string `json:"symbol"`
+		Shortname string `json:"shortname"`
+		Longname  string `json:"longname"`
+		ExchDisp  string `json:"exchDisp"`
+		TypeDisp  string `json:"typeDisp"`
+		QuoteType string `json:"quoteType"`
+	} `json:"quotes"`
+}
+
+func (y *YahooProvider) SearchTickers(query string) ([]TickerResult, error) {
+	if query == "" {
+		return nil, nil
+	}
+	url := fmt.Sprintf(
+		"https://query1.finance.yahoo.com/v1/finance/search?q=%s&quotesCount=8&newsCount=0&listsCount=0&enableFuzzyQuery=false",
+		query,
+	)
+	req, _ := http.NewRequest(http.MethodGet, url, nil)
+	req.Header.Set("User-Agent", "Mozilla/5.0")
+
+	resp, err := y.client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("yahoo search: %w", err)
+	}
+	defer resp.Body.Close()
+
+	var data yahooSearchResponse
+	if err := json.NewDecoder(resp.Body).Decode(&data); err != nil {
+		return nil, fmt.Errorf("yahoo search decode: %w", err)
+	}
+
+	results := make([]TickerResult, 0, len(data.Quotes))
+	for _, q := range data.Quotes {
+		// Only return equities and ETFs, skip indices/currencies/futures.
+		if q.QuoteType != "EQUITY" && q.QuoteType != "ETF" && q.QuoteType != "MUTUALFUND" {
+			continue
+		}
+		name := q.Shortname
+		if name == "" {
+			name = q.Longname
+		}
+		results = append(results, TickerResult{
+			Symbol:   q.Symbol,
+			Name:     name,
+			Exchange: q.ExchDisp,
+			Type:     q.TypeDisp,
+		})
+	}
+	return results, nil
 }
 
 func (y *YahooProvider) FetchFXRates(currencies []string) ([]models.FXRate, error) {

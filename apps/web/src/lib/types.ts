@@ -84,6 +84,13 @@ export interface FXRate {
 
 export type HistoryRange = "1W" | "1M" | "3M" | "1Y" | "ALL";
 
+export interface TickerResult {
+  symbol: string;
+  name: string;
+  exchange: string;
+  type: string;
+}
+
 export interface ApiResponse<T> {
   data: T;
 }

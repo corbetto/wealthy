@@ -7,6 +7,7 @@ import type {
   MarketPrice,
   PortfolioSnapshot,
   PortfolioSummary,
+  TickerResult,
   Transaction,
 } from "./types";
 
@@ -59,4 +60,6 @@ export const marketApi = {
   prices: (tickers: string[]) =>
     request<ApiResponse<MarketPrice[]>>(`/market/prices?tickers=${tickers.join(",")}`),
   fxRates: () => request<ApiResponse<FXRate[]>>("/market/fx-rates"),
+  search: (q: string) =>
+    request<ApiResponse<TickerResult[]>>(`/market/search?q=${encodeURIComponent(q)}`),
 };

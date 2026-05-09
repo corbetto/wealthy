@@ -54,7 +54,7 @@ func main() {
 	handlers.NewAccountHandler(accountSvc).RegisterRoutes(v1)
 	handlers.NewTransactionHandler(txnSvc).RegisterRoutes(v1)
 	handlers.NewPortfolioHandler(portfolioSvc).RegisterRoutes(v1)
-	handlers.NewMarketHandler(marketSvc).RegisterRoutes(v1)
+	handlers.NewMarketHandler(marketSvc, provider).RegisterRoutes(v1)
 
 	r.GET("/health", func(c *gin.Context) { c.JSON(200, gin.H{"status": "ok"}) })
 

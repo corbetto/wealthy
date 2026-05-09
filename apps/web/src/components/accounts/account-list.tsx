@@ -1,16 +1,114 @@
 "use client";
 
-import { useState } from "react";
-import { Edit2, MoreHorizontal, Trash2 } from "lucide-react";
+import { useRef, useState } from "react";
+import { Check, Edit2, RefreshCcw, Trash2, X } from "lucide-react";
 import { format } from "date-fns";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { useAccounts, useDeleteAccount } from "@/lib/hooks/use-accounts";
+import { useAccounts, useDeleteAccount, useUpdateAccount } from "@/lib/hooks/use-accounts";
 import { AccountForm } from "./account-form";
 import { formatCurrency } from "@/lib/utils";
 import type { Account } from "@/lib/types";
+
+function QuickBalanceUpdate({ account }: { account: Account }) {
+  const [editing, setEditing] = useState(false);
+  const [value, setValue] = useState(account.balance.toString());
+  const updateMutation = useUpdateAccount();
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  function startEditing() {
+    setValue(account.balance.toString());
+    setEditing(true);
+    setTimeout(() => inputRef.current?.select(), 0);
+  }
+
+  function cancel() {
+    setEditing(false);
+    setValue(account.balance.toString());
+  }
+
+  async function confirm() {
+    const newBalance = parseFloat(value);
+    if (isNaN(newBalance) || newBalance === account.balance) {
+      cancel();
+      return;
+    }
+    await updateMutation.mutateAsync({
+      id: account.id,
+      data: { ...account, balance: newBalance },
+    });
+    setEditing(false);
+  }
+
+  function handleKeyDown(e: React.KeyboardEvent) {
+    if (e.key === "Enter") confirm();
+    if (e.key === "Escape") cancel();
+  }
+
+  if (editing) {
+    return (
+      <div className="flex items-center gap-1.5">
+        <div className="relative">
+          <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
+            {account.currency === "NZD" ? "$" : account.currency === "USD" ? "US$" : "A$"}
+          </span>
+          <Input
+            ref={inputRef}
+            type="number"
+            step="0.01"
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+            onKeyDown={handleKeyDown}
+            className="h-8 w-32 pl-8 text-right tabular-nums text-sm"
+            autoFocus
+          />
+        </div>
+        <Button
+          size="icon"
+          variant="ghost"
+          className="h-7 w-7 text-profit hover:text-profit"
+          onClick={confirm}
+          disabled={updateMutation.isPending}
+        >
+          <Check className="h-3.5 w-3.5" />
+        </Button>
+        <Button
+          size="icon"
+          variant="ghost"
+          className="h-7 w-7"
+          onClick={cancel}
+        >
+          <X className="h-3.5 w-3.5" />
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex items-center gap-2">
+      <div className="text-right">
+        <p className="text-lg font-bold tabular-nums">
+          {formatCurrency(account.balance, account.currency)}
+        </p>
+        <p className="text-xs text-muted-foreground">
+          Updated {format(new Date(account.updated_at), "MMM d")}
+        </p>
+      </div>
+      <Button
+        size="icon"
+        variant="ghost"
+        className="h-7 w-7 text-muted-foreground hover:text-foreground"
+        title="Update balance"
+        onClick={startEditing}
+      >
+        <RefreshCcw className="h-3.5 w-3.5" />
+      </Button>
+    </div>
+  );
+}
 
 export function AccountList() {
   const { data: accounts, isLoading } = useAccounts();
@@ -79,20 +177,18 @@ export function AccountList() {
                     )}
                   </div>
                 </div>
-                <div className="flex items-center gap-3 shrink-0">
-                  <div className="text-right">
-                    <p className="text-lg font-bold">
-                      {formatCurrency(account.balance, account.currency)}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      Updated {format(new Date(account.updated_at), "MMM d")}
-                    </p>
-                  </div>
-                  <div className="flex gap-1">
+
+                <div className="flex items-center gap-2 shrink-0">
+                  {/* Quick balance update — inline */}
+                  <QuickBalanceUpdate account={account} />
+
+                  {/* Edit / Delete */}
+                  <div className="flex gap-0.5 border-l border-border pl-2 ml-1">
                     <Button
                       size="icon"
                       variant="ghost"
-                      className="h-8 w-8"
+                      className="h-7 w-7"
+                      title="Edit account"
                       onClick={() => setEditing(account)}
                     >
                       <Edit2 className="h-3.5 w-3.5" />
@@ -100,7 +196,7 @@ export function AccountList() {
                     <Button
                       size="icon"
                       variant="ghost"
-                      className="h-8 w-8 text-destructive hover:text-destructive"
+                      className="h-7 w-7 text-destructive hover:text-destructive"
                       disabled={deleteMutation.isPending}
                       onClick={() => {
                         if (confirm(`Delete "${account.name}"?`)) {
