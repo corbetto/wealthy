@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { useHoldings } from "@/lib/hooks/use-transactions";
 import { formatCurrency, formatPercent, gainClass } from "@/lib/utils";
 import { cn } from "@/lib/utils";
+import { TickerIcon } from "./ticker-icon";
 
 export function HoldingsTable() {
   const { data: holdings, isLoading } = useHoldings();
@@ -48,9 +49,7 @@ export function HoldingsTable() {
                     <tr key={h.ticker} className="transition-colors hover:bg-accent/30">
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
-                          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-muted text-xs font-bold">
-                            {h.ticker.slice(0, 2)}
-                          </div>
+                          <TickerIcon ticker={h.ticker} size="sm" />
                           <div>
                             <p className="font-semibold">{h.ticker}</p>
                             <Badge variant="secondary" className="text-xs mt-0.5">

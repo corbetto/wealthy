@@ -9,6 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { useDeleteTransaction, useTransactions } from "@/lib/hooks/use-transactions";
 import { TransactionForm } from "./transaction-form";
+import { TickerIcon } from "./ticker-icon";
 import { formatCurrency } from "@/lib/utils";
 import { cn } from "@/lib/utils";
 import type { Transaction } from "@/lib/types";
@@ -60,6 +61,7 @@ export function TransactionList() {
                       </td>
                       <td className="px-4 py-3.5">
                         <div className="flex items-center gap-2">
+                          <TickerIcon ticker={t.ticker} size="sm" />
                           <span className="font-semibold">{t.ticker}</span>
                           <Badge variant="secondary" className="text-xs">{t.exchange}</Badge>
                         </div>

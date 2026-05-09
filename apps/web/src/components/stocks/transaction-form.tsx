@@ -58,6 +58,11 @@ export function TransactionForm({ open, onClose, transaction }: TransactionFormP
     setForm((prev) => ({ ...prev, ticker, exchange, currency }));
   }
 
+  function handleExchangeChange(exchange: Exchange) {
+    const currency = exchange === "NZ" ? "NZD" : exchange === "AU" ? "AUD" : "USD";
+    setForm((prev) => ({ ...prev, exchange, currency }));
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     const payload = {
@@ -89,17 +94,25 @@ export function TransactionForm({ open, onClose, transaction }: TransactionFormP
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
 
-          {/* Ticker search — auto-fills exchange + currency */}
-          <div className="space-y-1.5">
-            <Label>Ticker Symbol</Label>
-            <TickerSearch value={form.ticker} onChange={handleTickerSelect} />
-            {form.ticker && (
-              <div className="flex items-center gap-2 pt-0.5">
-                <Badge variant="secondary">{form.exchange}</Badge>
-                <Badge variant="secondary">{form.currency}</Badge>
-                <span className="text-xs text-muted-foreground">auto-detected from ticker</span>
-              </div>
-            )}
+          {/* Ticker search + exchange selector */}
+          <div className="grid grid-cols-3 gap-4">
+            <div className="col-span-2 space-y-1.5">
+              <Label>Ticker Symbol</Label>
+              <TickerSearch value={form.ticker} onChange={handleTickerSelect} />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Exchange</Label>
+              <Select value={form.exchange} onValueChange={(v) => handleExchangeChange(v as Exchange)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="US">US (USD)</SelectItem>
+                  <SelectItem value="NZ">NZ (NZD)</SelectItem>
+                  <SelectItem value="AU">AU (AUD)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">

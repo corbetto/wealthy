@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { useHoldings } from "@/lib/hooks/use-transactions";
 import { formatCurrency, formatPercent, gainClass } from "@/lib/utils";
 import { cn } from "@/lib/utils";
+import { TickerIcon } from "@/components/stocks/ticker-icon";
 
 export function TopHoldings() {
   const { data: holdings, isLoading } = useHoldings();
@@ -43,9 +44,7 @@ export function TopHoldings() {
                 className="flex items-center justify-between px-6 py-3.5 transition-colors hover:bg-accent/40"
               >
                 <div className="flex items-center gap-3">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-muted text-xs font-bold">
-                    {h.ticker.slice(0, 2)}
-                  </div>
+                  <TickerIcon ticker={h.ticker} size="md" />
                   <div>
                     <p className="font-semibold text-sm">{h.ticker}</p>
                     <p className="text-xs text-muted-foreground">
