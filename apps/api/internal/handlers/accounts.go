@@ -19,6 +19,7 @@ func (h *AccountHandler) RegisterRoutes(r gin.IRouter) {
 	r.POST("/accounts", h.create)
 	r.PUT("/accounts/:id", h.update)
 	r.DELETE("/accounts/:id", h.delete)
+	r.GET("/accounts/:id/history", h.history)
 }
 
 func (h *AccountHandler) list(c *gin.Context) {
@@ -65,4 +66,13 @@ func (h *AccountHandler) delete(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "deleted"})
+}
+
+func (h *AccountHandler) history(c *gin.Context) {
+	id := c.Param("id")
+	entries := h.svc.GetBalanceHistory(id)
+	if entries == nil {
+		entries = []models.BalanceEntry{}
+	}
+	c.JSON(http.StatusOK, gin.H{"data": entries})
 }

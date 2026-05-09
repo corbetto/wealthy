@@ -63,6 +63,7 @@ type Holding struct {
 	RealizedGain      float64 `json:"realized_gain"`       // in NZD, from completed sells
 	DayChange         float64 `json:"day_change"`          // in NZD
 	DayChangePct      float64 `json:"day_change_pct"`
+	PriceStale        bool    `json:"price_stale"` // true when no live price available, cost basis used instead
 }
 
 // PortfolioSummary is the high-level view of total wealth.
@@ -107,11 +108,20 @@ type FXRate struct {
 	FetchedAt time.Time `json:"fetched_at"`
 }
 
+// BalanceEntry is a point-in-time balance record for an account.
+type BalanceEntry struct {
+	AccountID string    `json:"account_id"`
+	Balance   float64   `json:"balance"`
+	Date      time.Time `json:"date"`
+	Note      string    `json:"note,omitempty"`
+}
+
 // Store is the top-level JSON persistence structure.
 type Store struct {
-	Accounts     []Account           `json:"accounts"`
-	Transactions []Transaction       `json:"transactions"`
-	Snapshots    []PortfolioSnapshot `json:"snapshots"`
-	Prices       []MarketPrice       `json:"prices"`
-	FXRates      []FXRate            `json:"fx_rates"`
+	Accounts       []Account           `json:"accounts"`
+	Transactions   []Transaction       `json:"transactions"`
+	Snapshots      []PortfolioSnapshot `json:"snapshots"`
+	Prices         []MarketPrice       `json:"prices"`
+	FXRates        []FXRate            `json:"fx_rates"`
+	BalanceHistory []BalanceEntry      `json:"balance_history"`
 }

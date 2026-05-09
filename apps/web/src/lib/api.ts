@@ -1,6 +1,7 @@
 import type {
   Account,
   ApiResponse,
+  BalanceEntry,
   FXRate,
   Holding,
   HistoryRange,
@@ -31,6 +32,7 @@ export const accountsApi = {
   update: (id: string, data: Partial<Account>) =>
     request<ApiResponse<Account>>(`/accounts/${id}`, { method: "PUT", body: JSON.stringify(data) }),
   delete: (id: string) => request<{ message: string }>(`/accounts/${id}`, { method: "DELETE" }),
+  history: (id: string) => request<ApiResponse<BalanceEntry[]>>(`/accounts/${id}/history`),
 };
 
 // Transactions

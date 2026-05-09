@@ -124,7 +124,16 @@ func (s *TransactionService) ComputeHoldings() ([]models.Holding, error) {
 		if pos.quantity > 0 {
 			avgCost = pos.totalCost / pos.quantity
 		}
-		marketValue := p.Price * pos.quantity
+
+		// If no live price available, fall back to avg cost so portfolio value
+		// reflects at least the cost basis rather than showing $0.
+		priceStale := p.Price == 0
+		livePrice := p.Price
+		if priceStale {
+			livePrice = avgCost
+		}
+
+		marketValue := livePrice * pos.quantity
 		marketValueNZD := ToNZD(marketValue, pos.currency, fxRates)
 		costBasisNZD := ToNZD(pos.totalCost, pos.currency, fxRates)
 		unrealizedGain := marketValueNZD - costBasisNZD
@@ -132,7 +141,7 @@ func (s *TransactionService) ComputeHoldings() ([]models.Holding, error) {
 		if costBasisNZD != 0 {
 			unrealizedPct = unrealizedGain / costBasisNZD * 100
 		}
-		dayChangePer := p.Price - p.PreviousClose
+		dayChangePer := livePrice - p.PreviousClose
 		dayChangeNZD := ToNZD(dayChangePer*pos.quantity, pos.currency, fxRates)
 		dayChangePct := 0.0
 		if p.PreviousClose > 0 {
@@ -145,7 +154,7 @@ func (s *TransactionService) ComputeHoldings() ([]models.Holding, error) {
 			Currency:          pos.currency,
 			Quantity:          pos.quantity,
 			AvgCost:           avgCost,
-			CurrentPrice:      p.Price,
+			CurrentPrice:      livePrice,
 			MarketValue:       marketValue,
 			MarketValueNZD:    marketValueNZD,
 			CostBasis:         pos.totalCost,
@@ -155,6 +164,7 @@ func (s *TransactionService) ComputeHoldings() ([]models.Holding, error) {
 			RealizedGain:      ToNZD(pos.realizedGain, pos.currency, fxRates),
 			DayChange:         dayChangeNZD,
 			DayChangePct:      dayChangePct,
+			PriceStale:        priceStale,
 		})
 	}
 

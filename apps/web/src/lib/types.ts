@@ -84,6 +84,13 @@ export interface FXRate {
 
 export type HistoryRange = "1W" | "1M" | "3M" | "1Y" | "ALL";
 
+export interface BalanceEntry {
+  account_id: string;
+  balance: number;
+  date: string;
+  note?: string;
+}
+
 export interface TickerResult {
   symbol: string;
   name: string;

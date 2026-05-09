@@ -31,10 +31,22 @@ export function useUpdateAccount() {
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: Partial<Account> }) =>
       accountsApi.update(id, data),
-    onSuccess: () => {
+    onSuccess: (_data, { id }) => {
       qc.invalidateQueries({ queryKey: ["accounts"] });
+      qc.invalidateQueries({ queryKey: ["accounts", id, "history"] });
       qc.invalidateQueries({ queryKey: ["portfolio"] });
     },
+  });
+}
+
+export function useAccountHistory(id: string) {
+  return useQuery({
+    queryKey: ["accounts", id, "history"],
+    queryFn: async () => {
+      const res = await accountsApi.history(id);
+      return res.data;
+    },
+    enabled: !!id,
   });
 }
 

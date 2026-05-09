@@ -26,10 +26,11 @@ func main() {
 	accountRepo := repository.NewAccountRepo(store)
 	txnRepo := repository.NewTransactionRepo(store)
 	portfolioRepo := repository.NewPortfolioRepo(store)
+	balanceHistoryRepo := repository.NewBalanceHistoryRepo(store)
 
 	provider := market.NewYahooProvider()
 	marketSvc := services.NewMarketService(portfolioRepo, provider)
-	accountSvc := services.NewAccountService(accountRepo, marketSvc)
+	accountSvc := services.NewAccountService(accountRepo, balanceHistoryRepo, marketSvc)
 	txnSvc := services.NewTransactionService(txnRepo, marketSvc)
 	portfolioSvc := services.NewPortfolioService(portfolioRepo, accountSvc, txnSvc)
 
