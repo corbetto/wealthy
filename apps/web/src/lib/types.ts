@@ -50,10 +50,12 @@ export interface PortfolioSummary {
   stock_value_nzd: number;
   total_cost_basis_nzd: number;
   total_profit_loss: number;
+  profit_loss_pct: number;
   unrealized_gain: number;
   realized_gain: number;
   day_change_nzd: number;
   day_change_pct: number;
+  prices_available: boolean;
   updated_at: string;
 }
 

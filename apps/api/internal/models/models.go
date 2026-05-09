@@ -73,10 +73,12 @@ type PortfolioSummary struct {
 	StockValueNZD     float64   `json:"stock_value_nzd"`
 	TotalCostBasisNZD float64   `json:"total_cost_basis_nzd"`
 	TotalProfitLoss   float64   `json:"total_profit_loss"`   // unrealized + realized, NZD
+	ProfitLossPct     float64   `json:"profit_loss_pct"`     // total_profit_loss / total_cost_basis * 100
 	UnrealizedGain    float64   `json:"unrealized_gain"`     // NZD
 	RealizedGain      float64   `json:"realized_gain"`       // NZD
 	DayChangeNZD      float64   `json:"day_change_nzd"`
 	DayChangePct      float64   `json:"day_change_pct"`
+	PricesAvailable   bool      `json:"prices_available"` // false when all holdings use stale/fallback prices
 	UpdatedAt         time.Time `json:"updated_at"`
 }
 

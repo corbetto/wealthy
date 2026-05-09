@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowDownRight, ArrowUpRight, Building2, TrendingUp, Wallet } from "lucide-react";
+import { ArrowDownRight, ArrowUpRight, Building2, TrendingUp, Wallet, AlertCircle } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { usePortfolioSummary } from "@/lib/hooks/use-portfolio";
@@ -27,6 +27,14 @@ export function SummaryCards() {
   if (!summary) return null;
 
   const dayPositive = summary.day_change_nzd >= 0;
+  const plPositive = summary.total_profit_loss >= 0;
+  const pricesStale = !summary.prices_available && summary.stock_value_nzd > 0;
+
+  // Stock return % uses cost basis when live prices available, otherwise not shown.
+  const stockReturnPct =
+    summary.total_cost_basis_nzd > 0
+      ? (summary.unrealized_gain / summary.total_cost_basis_nzd) * 100
+      : 0;
 
   const cards = [
     {
@@ -45,9 +53,15 @@ export function SummaryCards() {
       label: "Profit / Loss",
       value: formatCurrency(summary.total_profit_loss),
       sub: (
-        <span className={cn("text-sm", gainClass(summary.unrealized_gain))}>
-          {formatCurrency(summary.unrealized_gain)} unrealized
-        </span>
+        <div className="space-y-0.5">
+          <span className={cn("flex items-center gap-1 text-sm font-medium", gainClass(summary.total_profit_loss))}>
+            {plPositive ? <ArrowUpRight className="h-4 w-4" /> : <ArrowDownRight className="h-4 w-4" />}
+            {formatPercent(summary.profit_loss_pct)} total return
+          </span>
+          <span className="block text-xs text-muted-foreground">
+            {formatCurrency(summary.unrealized_gain)} unrealized · {formatCurrency(summary.realized_gain)} realized
+          </span>
+        </div>
       ),
       icon: TrendingUp,
     },
@@ -60,14 +74,15 @@ export function SummaryCards() {
     {
       label: "Stock Portfolio",
       value: formatCurrency(summary.stock_value_nzd),
-      sub: (
-        <span className={cn("text-sm", gainClass(summary.unrealized_gain))}>
-          {formatPercent(
-            summary.total_cost_basis_nzd > 0
-              ? (summary.unrealized_gain / summary.total_cost_basis_nzd) * 100
-              : 0
-          )}{" "}
-          return
+      sub: pricesStale ? (
+        <span className="flex items-center gap-1 text-xs text-muted-foreground">
+          <AlertCircle className="h-3.5 w-3.5" />
+          Prices unavailable — showing cost basis
+        </span>
+      ) : (
+        <span className={cn("flex items-center gap-1 text-sm", gainClass(stockReturnPct))}>
+          {stockReturnPct >= 0 ? <ArrowUpRight className="h-4 w-4" /> : <ArrowDownRight className="h-4 w-4" />}
+          {formatPercent(stockReturnPct)} return
         </span>
       ),
       icon: TrendingUp,

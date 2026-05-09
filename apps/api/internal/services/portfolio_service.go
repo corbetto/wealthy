@@ -41,12 +41,16 @@ func (s *PortfolioService) Summary() (models.PortfolioSummary, error) {
 	}
 
 	var stockValueNZD, unrealizedGain, realizedGain, costBasisNZD, dayChange float64
+	staleCount := 0
 	for _, h := range holdings {
 		stockValueNZD += h.MarketValueNZD
 		unrealizedGain += h.UnrealizedGain
 		realizedGain += h.RealizedGain
 		costBasisNZD += h.CostBasisNZD
 		dayChange += h.DayChange
+		if h.PriceStale {
+			staleCount++
+		}
 	}
 
 	totalValue := cashNZD + stockValueNZD
@@ -55,17 +59,24 @@ func (s *PortfolioService) Summary() (models.PortfolioSummary, error) {
 	if prevValue != 0 {
 		dayChangePct = dayChange / prevValue * 100
 	}
+	totalPL := unrealizedGain + realizedGain
+	plPct := 0.0
+	if costBasisNZD != 0 {
+		plPct = totalPL / costBasisNZD * 100
+	}
 
 	return models.PortfolioSummary{
 		TotalValueNZD:     totalValue,
 		CashValueNZD:      cashNZD,
 		StockValueNZD:     stockValueNZD,
 		TotalCostBasisNZD: costBasisNZD,
-		TotalProfitLoss:   unrealizedGain + realizedGain,
+		TotalProfitLoss:   totalPL,
+		ProfitLossPct:     plPct,
 		UnrealizedGain:    unrealizedGain,
 		RealizedGain:      realizedGain,
 		DayChangeNZD:      dayChange,
 		DayChangePct:      dayChangePct,
+		PricesAvailable:   len(holdings) == 0 || staleCount < len(holdings),
 		UpdatedAt:         time.Now().UTC(),
 	}, nil
 }
