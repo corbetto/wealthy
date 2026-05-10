@@ -1,7 +1,7 @@
 "use client";
 
-import { useRef, useState } from "react";
-import { Check, ChevronDown, Edit2, RefreshCcw, Trash2, X } from "lucide-react";
+import { useState } from "react";
+import { ChevronDown, Edit2, RefreshCcw, Trash2 } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import {
   Area,
@@ -15,78 +15,82 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { useAccounts, useAccountHistory, useDeleteAccount, useUpdateAccount } from "@/lib/hooks/use-accounts";
 import { AccountForm } from "./account-form";
 import { formatCurrency, cn } from "@/lib/utils";
 import type { Account } from "@/lib/types";
 
-// ── Quick inline balance update ───────────────────────────────────────────────
-function QuickBalanceUpdate({ account }: { account: Account }) {
-  const [editing, setEditing] = useState(false);
-  const [value, setValue] = useState(account.balance.toString());
+// ── Update balance dialog ─────────────────────────────────────────────────────
+function UpdateBalanceDialog({ account, open, onClose }: { account: Account; open: boolean; onClose: () => void }) {
+  const [balance, setBalance] = useState(account.balance.toString());
+  const [note, setNote] = useState("");
   const updateMutation = useUpdateAccount();
-  const inputRef = useRef<HTMLInputElement>(null);
 
-  function startEditing() {
-    setValue(account.balance.toString());
-    setEditing(true);
-    setTimeout(() => inputRef.current?.select(), 0);
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    const newBalance = parseFloat(balance);
+    if (isNaN(newBalance)) return;
+    await updateMutation.mutateAsync({
+      id: account.id,
+      data: { ...account, balance: newBalance, balance_note: note.trim() },
+    });
+    onClose();
   }
 
-  function cancel() {
-    setEditing(false);
-    setValue(account.balance.toString());
-  }
-
-  async function confirm() {
-    const newBalance = parseFloat(value);
-    if (isNaN(newBalance) || newBalance === account.balance) { cancel(); return; }
-    await updateMutation.mutateAsync({ id: account.id, data: { ...account, balance: newBalance } });
-    setEditing(false);
-  }
-
-  function handleKeyDown(e: React.KeyboardEvent) {
-    if (e.key === "Enter") confirm();
-    if (e.key === "Escape") cancel();
-  }
-
-  if (editing) {
-    return (
-      <div className="flex items-center gap-1.5">
-        <Input
-          ref={inputRef}
-          type="number"
-          step="0.01"
-          value={value}
-          onChange={(e) => setValue(e.target.value)}
-          onKeyDown={handleKeyDown}
-          className="h-8 w-28 text-right tabular-nums text-sm"
-          autoFocus
-        />
-        <Button size="icon" variant="ghost" className="h-7 w-7 text-profit hover:text-profit"
-          onClick={confirm} disabled={updateMutation.isPending}>
-          <Check className="h-3.5 w-3.5" />
-        </Button>
-        <Button size="icon" variant="ghost" className="h-7 w-7" onClick={cancel}>
-          <X className="h-3.5 w-3.5" />
-        </Button>
-      </div>
-    );
+  function handleOpenChange(o: boolean) {
+    if (!o) onClose();
   }
 
   return (
-    <div className="flex items-center gap-1.5">
-      <div className="text-right">
-        <p className="text-lg font-bold tabular-nums">{formatCurrency(account.balance, account.currency)}</p>
-        <p className="text-xs text-muted-foreground">Updated {format(new Date(account.updated_at), "MMM d")}</p>
-      </div>
-      <Button size="icon" variant="ghost" className="h-7 w-7 text-muted-foreground hover:text-foreground"
-        title="Update balance" onClick={startEditing}>
-        <RefreshCcw className="h-3.5 w-3.5" />
-      </Button>
-    </div>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogContent className="sm:max-w-sm">
+        <DialogHeader>
+          <DialogTitle>Update Balance — {account.name}</DialogTitle>
+        </DialogHeader>
+        <form onSubmit={handleSubmit} className="space-y-4 pt-1">
+          <div className="space-y-1.5">
+            <Label htmlFor="balance">New balance ({account.currency})</Label>
+            <Input
+              id="balance"
+              type="number"
+              step="0.01"
+              min="0"
+              value={balance}
+              onChange={(e) => setBalance(e.target.value)}
+              autoFocus
+              required
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="note">Reason (optional)</Label>
+            <Input
+              id="note"
+              placeholder="e.g. Salary deposited, rent paid…"
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+            />
+          </div>
+          <DialogFooter className="gap-2 pt-1">
+            <Button type="button" variant="outline" onClick={onClose} disabled={updateMutation.isPending}>
+              Cancel
+            </Button>
+            <Button type="submit" disabled={updateMutation.isPending}>
+              {updateMutation.isPending ? "Saving…" : "Update"}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -167,6 +171,7 @@ export function AccountList() {
   const { data: accounts, isLoading } = useAccounts();
   const deleteMutation = useDeleteAccount();
   const [editing, setEditing] = useState<Account | null>(null);
+  const [updatingBalance, setUpdatingBalance] = useState<Account | null>(null);
   const [expanded, setExpanded] = useState<string | null>(null);
 
   if (isLoading) {
@@ -233,7 +238,16 @@ export function AccountList() {
 
                   {/* Right: balance + actions */}
                   <div className="flex items-center gap-2 shrink-0">
-                    <QuickBalanceUpdate account={account} />
+                    <div className="flex items-center gap-1.5">
+                      <div className="text-right">
+                        <p className="text-lg font-bold tabular-nums">{formatCurrency(account.balance, account.currency)}</p>
+                        <p className="text-xs text-muted-foreground">Updated {format(new Date(account.updated_at), "MMM d")}</p>
+                      </div>
+                      <Button size="icon" variant="ghost" className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                        title="Update balance" onClick={() => setUpdatingBalance(account)}>
+                        <RefreshCcw className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
                     <div className="flex gap-0.5 border-l border-border pl-2">
                       <Button size="icon" variant="ghost" className="h-7 w-7"
                         title="View history"
@@ -263,6 +277,13 @@ export function AccountList() {
       </div>
 
       {editing && <AccountForm open={!!editing} onClose={() => setEditing(null)} account={editing} />}
+      {updatingBalance && (
+        <UpdateBalanceDialog
+          account={updatingBalance}
+          open={!!updatingBalance}
+          onClose={() => setUpdatingBalance(null)}
+        />
+      )}
     </>
   );
 }

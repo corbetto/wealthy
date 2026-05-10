@@ -10,6 +10,7 @@ type Account struct {
 	Currency    string    `json:"currency"` // NZD, USD, AUD
 	Balance     float64   `json:"balance"`
 	Notes       string    `json:"notes,omitempty"`
+	BalanceNote string    `json:"balance_note,omitempty"` // transient: note recorded in balance history on update
 	UpdatedAt   time.Time `json:"updated_at"`
 	CreatedAt   time.Time `json:"created_at"`
 }

@@ -70,6 +70,7 @@ func (s *AccountService) Update(id string, a models.Account) (models.Account, er
 			AccountID: id,
 			Balance:   updated.Balance,
 			Date:      time.Now().UTC(),
+			Note:      a.BalanceNote,
 		})
 	}
 	return updated, nil
