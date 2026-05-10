@@ -68,6 +68,16 @@
     {"date":"2026-02-01T00:00:00Z","total_value_nzd":83200,"cash_value_nzd":25200,"stock_value_nzd":58000,"profit_loss":44800,"unrealized_gain":44800,"realized_gain":0},
     {"date":"2026-03-01T00:00:00Z","total_value_nzd":79600,"cash_value_nzd":25200,"stock_value_nzd":54400,"profit_loss":41200,"unrealized_gain":41200,"realized_gain":0},
     {"date":"2026-04-01T00:00:00Z","total_value_nzd":82400,"cash_value_nzd":25200,"stock_value_nzd":57200,"profit_loss":44000,"unrealized_gain":44000,"realized_gain":0},
+    {"date":"2026-04-07T00:00:00Z","total_value_nzd":83100,"cash_value_nzd":25200,"stock_value_nzd":57900,"profit_loss":44700,"unrealized_gain":44700,"realized_gain":0},
+    {"date":"2026-04-14T00:00:00Z","total_value_nzd":84400,"cash_value_nzd":25200,"stock_value_nzd":59200,"profit_loss":45900,"unrealized_gain":45900,"realized_gain":0},
+    {"date":"2026-04-21T00:00:00Z","total_value_nzd":83600,"cash_value_nzd":25200,"stock_value_nzd":58400,"profit_loss":45200,"unrealized_gain":45200,"realized_gain":0},
+    {"date":"2026-04-28T00:00:00Z","total_value_nzd":85100,"cash_value_nzd":25200,"stock_value_nzd":59900,"profit_loss":46700,"unrealized_gain":46700,"realized_gain":0},
+    {"date":"2026-05-01T00:00:00Z","total_value_nzd":85800,"cash_value_nzd":25200,"stock_value_nzd":60600,"profit_loss":47300,"unrealized_gain":47300,"realized_gain":0},
+    {"date":"2026-05-04T00:00:00Z","total_value_nzd":86200,"cash_value_nzd":25200,"stock_value_nzd":61000,"profit_loss":47700,"unrealized_gain":47700,"realized_gain":0},
+    {"date":"2026-05-05T00:00:00Z","total_value_nzd":85600,"cash_value_nzd":25200,"stock_value_nzd":60400,"profit_loss":47100,"unrealized_gain":47100,"realized_gain":0},
+    {"date":"2026-05-06T00:00:00Z","total_value_nzd":85900,"cash_value_nzd":25200,"stock_value_nzd":60700,"profit_loss":47400,"unrealized_gain":47400,"realized_gain":0},
+    {"date":"2026-05-07T00:00:00Z","total_value_nzd":85200,"cash_value_nzd":25200,"stock_value_nzd":60000,"profit_loss":46800,"unrealized_gain":46800,"realized_gain":0},
+    {"date":"2026-05-08T00:00:00Z","total_value_nzd":84900,"cash_value_nzd":25200,"stock_value_nzd":59700,"profit_loss":46500,"unrealized_gain":46500,"realized_gain":0},
     {"date":"2026-05-09T00:00:00Z","total_value_nzd":84750,"cash_value_nzd":25200,"stock_value_nzd":59550,"profit_loss":46200,"unrealized_gain":46200,"realized_gain":0}
   ],
   "balance_history": [
