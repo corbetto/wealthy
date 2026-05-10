@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { BarChart3, Building2, TrendingUp } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { ThemeToggle } from "./theme-toggle";
 
 const navItems = [
   { href: "/", icon: BarChart3, label: "Dashboard" },
@@ -42,8 +43,9 @@ export function Sidebar() {
         })}
       </nav>
 
-      <div className="mt-auto px-3">
+      <div className="mt-auto px-3 flex items-center justify-between">
         <p className="text-xs text-muted-foreground">All values in NZD</p>
+        <ThemeToggle />
       </div>
     </aside>
   );

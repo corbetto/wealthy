@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { BarChart3, Building2, TrendingUp } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { ThemeToggle } from "./theme-toggle";
 
 const navItems = [
   { href: "/", icon: BarChart3, label: "Dashboard" },
@@ -32,6 +33,9 @@ export function MobileNav() {
           </Link>
         );
       })}
+      <div className="flex flex-col items-center justify-center px-3">
+        <ThemeToggle />
+      </div>
     </nav>
   );
 }
