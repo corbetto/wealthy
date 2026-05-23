@@ -93,16 +93,30 @@ The Next.js dev server proxies `/api/*` to the Go backend at `localhost:8080`.
 
 ### Publishing a release
 
-After committing, rebuild the Docker image and push both to GitHub and Docker Hub:
+Wealthy uses [semantic versioning](https://semver.org): `MAJOR.MINOR.PATCH`
+
+- `PATCH` (1.0.**1**) — bug fixes
+- `MINOR` (1.**1**.0) — new features
+- `MAJOR` (**2**.0.0) — breaking changes
+
+After committing, tag the release, push to GitHub, and publish to Docker Hub:
 
 ```bash
-# Push code to GitHub
+# Push code and tag to GitHub
 git push
+git tag v1.0.1
+git push origin v1.0.1
 
-# Rebuild and push image to Docker Hub
-docker build -t corbettjms/wealthy:latest .
+# Build and push versioned + latest image to Docker Hub
+docker build -t corbettjms/wealthy:v1.0.1 -t corbettjms/wealthy:latest .
+docker push corbettjms/wealthy:v1.0.1
 docker push corbettjms/wealthy:latest
+
+# Create GitHub Release with changelog
+gh release create v1.0.1 --title "v1.0.1" --notes "What changed in this release"
 ```
+
+Versioned Docker tags (`v1.0.1`) act as permanent snapshots — users can pin to a specific version if a newer update causes issues.
 
 ### Deploying the update on Unraid
 
