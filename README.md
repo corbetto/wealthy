@@ -46,14 +46,10 @@ wealthy/
 ### Option 1: Docker (recommended)
 
 ```bash
-git clone <repo>
+git clone https://github.com/corbetto/wealthy.git
 cd wealthy
 
-# Start API + web
 docker compose up --build
-
-# Seed sample data (optional)
-cp apps/api/data/seed.json <docker-volume-path>/wealthy.json
 ```
 
 Open http://localhost:3000
@@ -77,6 +73,40 @@ npm run dev
 Open http://localhost:3000
 
 The Next.js dev server proxies `/api/*` to the Go backend at `localhost:8080`.
+
+---
+
+## Development & Release Workflow
+
+### Making changes
+
+1. Make and test your changes locally using Option 2 above
+2. Verify the production build works:
+   ```bash
+   docker compose up --build
+   ```
+3. Commit your changes:
+   ```bash
+   git add <files>
+   git commit -m "feat/fix: description of change"
+   ```
+
+### Publishing a release
+
+After committing, rebuild the Docker image and push both to GitHub and Docker Hub:
+
+```bash
+# Push code to GitHub
+git push
+
+# Rebuild and push image to Docker Hub
+docker build -t corbettjms/wealthy:latest .
+docker push corbettjms/wealthy:latest
+```
+
+### Deploying the update on Unraid
+
+Once the new image is on Docker Hub, open the Unraid Docker tab, find the Wealthy container, and click **Update**. Unraid will pull the latest image and restart the container. Your data in `/mnt/user/appdata/wealthy` is preserved.
 
 ---
 
