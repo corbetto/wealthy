@@ -107,14 +107,17 @@ git push
 git tag v1.0.1
 git push origin v1.0.1
 
-# Build and push versioned + latest image to Docker Hub
-docker build -t corbettjms/wealthy:v1.0.1 -t corbettjms/wealthy:latest .
-docker push corbettjms/wealthy:v1.0.1
-docker push corbettjms/wealthy:latest
+# Build for linux/amd64 (Unraid) and push both tags directly to Docker Hub
+docker buildx build --platform linux/amd64 \
+  -t corbettjms/wealthy:v1.0.1 \
+  -t corbettjms/wealthy:latest \
+  --push .
 
 # Create GitHub Release with changelog
 gh release create v1.0.1 --title "v1.0.1" --notes "What changed in this release"
 ```
+
+> **Note:** The build targets `linux/amd64` because Unraid runs on x86_64. The `--push` flag is required with `buildx` — cross-platform builds go directly to Docker Hub rather than the local image store.
 
 Versioned Docker tags (`v1.0.1`) act as permanent snapshots — users can pin to a specific version if a newer update causes issues.
 
