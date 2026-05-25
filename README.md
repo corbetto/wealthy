@@ -76,57 +76,6 @@ The Next.js dev server proxies `/api/*` to the Go backend at `localhost:8080`.
 
 ---
 
-## Development & Release Workflow
-
-### Making changes
-
-1. Make and test your changes locally using Option 2 above
-2. Verify the production build works:
-   ```bash
-   docker compose up --build
-   ```
-3. Commit your changes:
-   ```bash
-   git add <files>
-   git commit -m "feat/fix: description of change"
-   ```
-
-### Publishing a release
-
-Wealthy uses [semantic versioning](https://semver.org): `MAJOR.MINOR.PATCH`
-
-- `PATCH` (1.0.**1**) — bug fixes
-- `MINOR` (1.**1**.0) — new features
-- `MAJOR` (**2**.0.0) — breaking changes
-
-After committing, tag the release, push to GitHub, and publish to Docker Hub:
-
-```bash
-# Push code and tag to GitHub
-git push
-git tag v1.0.1
-git push origin v1.0.1
-
-# Build for linux/amd64 (Unraid) and push both tags directly to Docker Hub
-docker buildx build --platform linux/amd64 \
-  -t corbettjms/wealthy:v1.0.1 \
-  -t corbettjms/wealthy:latest \
-  --push .
-
-# Create GitHub Release with changelog
-gh release create v1.0.1 --title "v1.0.1" --notes "What changed in this release"
-```
-
-> **Note:** The build targets `linux/amd64` because Unraid runs on x86_64. The `--push` flag is required with `buildx` — cross-platform builds go directly to Docker Hub rather than the local image store.
-
-Versioned Docker tags (`v1.0.1`) act as permanent snapshots — users can pin to a specific version if a newer update causes issues.
-
-### Deploying the update on Unraid
-
-Once the new image is on Docker Hub, open the Unraid Docker tab, find the Wealthy container, and click **Update**. Unraid will pull the latest image and restart the container. Your data in `/mnt/user/appdata/wealthy` is preserved.
-
----
-
 ## Seed Sample Data
 
 ```bash
