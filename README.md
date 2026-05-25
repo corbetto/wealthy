@@ -26,7 +26,7 @@ wealthy/
 
 ### Backend
 
-- **Language:** Go 1.22
+- **Language:** Go 1.24
 - **Router:** Gin
 - **Persistence:** JSON file with atomic writes (temp-file swap)
 - **Market data:** Yahoo Finance v7 API (unofficial, no API key needed)
@@ -43,20 +43,22 @@ wealthy/
 
 ## Quick Start
 
-### Option 1: Docker (recommended)
+### Docker Hub (recommended)
 
 ```bash
-git clone https://github.com/corbetto/wealthy.git
-cd wealthy
-
-docker compose up --build
+docker pull corbettjms/wealthy:latest
+docker run -d \
+  -p 3000:3000 \
+  -v wealthy-data:/data \
+  --name wealthy \
+  corbettjms/wealthy:latest
 ```
 
 Open http://localhost:3000
 
-### Option 2: Local development
+### Local development
 
-**Prerequisites:** Go 1.22+, Node 20+
+**Prerequisites:** Go 1.24+, Node 22+
 
 ```bash
 # Terminal 1 — API
@@ -114,10 +116,7 @@ All responses follow `{ "data": <payload> }` or `{ "error": "<message>" }`.
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `PORT` | `8080` | API server port |
-| `DATA_PATH` | `./data/wealthy.json` | JSON store path |
-| `GIN_MODE` | `debug` | Set to `release` in production |
-| `NEXT_PUBLIC_API_URL` | `http://localhost:8080` | Backend URL for web container |
+| `DATA_PATH` | `/data/wealthy.json` | Path to the JSON data file |
 
 ---
 
@@ -142,20 +141,7 @@ Yahoo Finance ticker suffixes (`.NZ`, `.AX`) are used directly.
 
 ---
 
-## Roadmap to Postgres
-
-The `FileStore` in `apps/api/internal/repository/store.go` implements a simple mutation pattern. Migrating to Postgres requires:
-
-1. Replace `FileStore` with a `*sql.DB`-backed store.
-2. Create tables: `accounts`, `transactions`, `portfolio_snapshots`, `market_prices`, `fx_rates`.
-3. Wire up `pgx` or `database/sql` in `main.go`.
-4. No changes needed in services or handlers — they only call repository interfaces.
-
-Estimated migration effort: ~1–2 days.
-
----
-
-## Future Features (not in MVP)
+## Future Features
 
 - Authentication (single-user password or passkey)
 - Crypto holdings
@@ -164,18 +150,3 @@ Estimated migration effort: ~1–2 days.
 - Push notifications for large portfolio moves
 - CSV import for transaction history
 - Superannuation / KiwiSaver tracking
-
----
-
-## Development
-
-```bash
-# Lint & type-check frontend
-cd apps/web && npm run type-check && npm run lint
-
-# Build API
-cd apps/api && go build ./...
-
-# Run API tests (add your own)
-cd apps/api && go test ./...
-```
