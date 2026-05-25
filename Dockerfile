@@ -1,19 +1,20 @@
-# ── API builder ──────────────────────────────────────────────────────────────
-FROM golang:1.22-alpine AS api-builder
+# ── API builder (runs natively on build machine, cross-compiles to target) ────
+FROM --platform=$BUILDPLATFORM golang:1.24-alpine AS api-builder
+ARG TARGETARCH
 WORKDIR /app
 COPY apps/api/go.mod apps/api/go.sum ./
 RUN go mod download
 COPY apps/api/ .
-RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o server ./cmd/server
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=$TARGETARCH go build -ldflags="-s -w" -o server ./cmd/server
 
-# ── Web deps ──────────────────────────────────────────────────────────────────
-FROM node:20-alpine AS web-deps
+# ── Web deps (runs natively on build machine) ─────────────────────────────────
+FROM --platform=$BUILDPLATFORM node:22-alpine AS web-deps
 WORKDIR /app
 COPY apps/web/package.json apps/web/package-lock.json* ./
 RUN npm ci
 
-# ── Web builder ───────────────────────────────────────────────────────────────
-FROM node:20-alpine AS web-builder
+# ── Web builder (runs natively on build machine) ──────────────────────────────
+FROM --platform=$BUILDPLATFORM node:22-alpine AS web-builder
 WORKDIR /app
 COPY --from=web-deps /app/node_modules ./node_modules
 COPY apps/web/ .
@@ -22,9 +23,9 @@ ENV NEXT_TELEMETRY_DISABLED=1
 ENV NEXT_PUBLIC_API_URL=http://localhost:8080
 RUN npm run build
 
-# ── Runtime ───────────────────────────────────────────────────────────────────
-FROM node:20-alpine
-RUN apk add --no-cache ca-certificates tzdata wget
+# ── Runtime (target platform image) ──────────────────────────────────────────
+FROM node:22-alpine
+RUN apk upgrade --no-cache && apk add --no-cache ca-certificates tzdata wget
 
 WORKDIR /app
 
