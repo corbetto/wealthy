@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { BarChart3, Building2, TrendingUp } from "lucide-react";
@@ -17,9 +18,12 @@ export function Sidebar() {
 
   return (
     <aside className="flex h-full w-56 flex-col border-r border-border bg-card px-3 py-6">
-      <div className="mb-8 px-3">
-        <span className="text-xl font-bold tracking-tight">Wealthy</span>
-        <p className="mt-0.5 text-xs text-muted-foreground">Portfolio Tracker</p>
+      <div className="mb-8 px-3 flex items-center gap-3">
+        <Image src="/wealthy.png" alt="Wealthy" width={32} height={32} className="rounded-lg" />
+        <div>
+          <span className="text-xl font-bold tracking-tight">Wealthy</span>
+          <p className="mt-0.5 text-xs text-muted-foreground">Portfolio Tracker</p>
+        </div>
       </div>
 
       <nav className="flex flex-col gap-1">
