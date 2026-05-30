@@ -32,7 +32,32 @@ func (s *TransactionService) Create(t models.Transaction) (models.Transaction, e
 	if t.Price < 0 {
 		return models.Transaction{}, fmt.Errorf("price must be non-negative")
 	}
+	if t.Type == models.TransactionSell {
+		held := s.heldQuantity(t.Ticker)
+		if t.Quantity > held {
+			return models.Transaction{}, fmt.Errorf("insufficient holdings: have %.4f shares of %s, cannot sell %.4f", held, t.Ticker, t.Quantity)
+		}
+	}
 	return s.txnRepo.Create(t)
+}
+
+// heldQuantity returns the net quantity currently held for a ticker.
+func (s *TransactionService) heldQuantity(ticker string) float64 {
+	var qty float64
+	for _, t := range s.txnRepo.List() {
+		if t.Ticker != ticker {
+			continue
+		}
+		if t.Type == models.TransactionBuy {
+			qty += t.Quantity
+		} else {
+			qty -= t.Quantity
+		}
+	}
+	if qty < 0 {
+		return 0
+	}
+	return qty
 }
 
 func (s *TransactionService) Update(id string, t models.Transaction) (models.Transaction, error) {
