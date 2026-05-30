@@ -49,11 +49,12 @@ func (s *TransactionService) ComputeHoldings() ([]models.Holding, error) {
 	sort.Slice(txns, func(i, j int) bool { return txns[i].Date.Before(txns[j].Date) })
 
 	type position struct {
-		exchange     models.Exchange
-		currency     string
-		quantity     float64
-		totalCost    float64 // sum of (qty * price + fees) for buys
-		realizedGain float64 // accumulated from sells
+		exchange      models.Exchange
+		currency      string
+		quantity      float64
+		totalCost     float64 // remaining cost basis after sells
+		totalInvested float64 // sum of all buy costs, never decreases — used for % return
+		realizedGain  float64 // accumulated from sells
 	}
 	positions := make(map[string]*position)
 
@@ -67,6 +68,7 @@ func (s *TransactionService) ComputeHoldings() ([]models.Holding, error) {
 		if t.Type == models.TransactionBuy {
 			cost := t.Quantity*t.Price + t.Fees
 			pos.totalCost += cost
+			pos.totalInvested += cost
 			pos.quantity += t.Quantity
 		} else {
 			// Sell: calculate realized gain using avg cost basis.
@@ -117,12 +119,14 @@ func (s *TransactionService) ComputeHoldings() ([]models.Holding, error) {
 	holdings := make([]models.Holding, 0, len(positions))
 	for ticker, pos := range positions {
 		if pos.quantity <= 0 {
-			// Fully closed position — carry realized gain so portfolio totals include it.
+			// Fully closed position — carry realized gain and original cost so the
+			// portfolio summary can compute the correct total return percentage.
 			if pos.realizedGain != 0 {
 				holdings = append(holdings, models.Holding{
 					Ticker:       ticker,
 					Exchange:     pos.exchange,
 					Currency:     pos.currency,
+					CostBasisNZD: ToNZD(pos.totalInvested, pos.currency, fxRates),
 					RealizedGain: ToNZD(pos.realizedGain, pos.currency, fxRates),
 				})
 			}
