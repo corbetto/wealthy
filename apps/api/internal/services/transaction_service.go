@@ -85,18 +85,18 @@ func (s *TransactionService) ComputeHoldings() ([]models.Holding, error) {
 		}
 	}
 
-	// Gather unique currencies and tickers.
+	// Gather currencies from all positions (including closed) for FX conversion of
+	// realized gains. Only fetch live prices for open positions.
 	currencies := []string{}
 	currencySet := map[string]bool{}
 	tickers := []string{}
 	for ticker, pos := range positions {
-		if pos.quantity <= 0 {
-			continue
-		}
-		tickers = append(tickers, ticker)
 		if !currencySet[pos.currency] {
 			currencySet[pos.currency] = true
 			currencies = append(currencies, pos.currency)
+		}
+		if pos.quantity > 0 {
+			tickers = append(tickers, ticker)
 		}
 	}
 
@@ -117,6 +117,15 @@ func (s *TransactionService) ComputeHoldings() ([]models.Holding, error) {
 	holdings := make([]models.Holding, 0, len(positions))
 	for ticker, pos := range positions {
 		if pos.quantity <= 0 {
+			// Fully closed position — carry realized gain so portfolio totals include it.
+			if pos.realizedGain != 0 {
+				holdings = append(holdings, models.Holding{
+					Ticker:       ticker,
+					Exchange:     pos.exchange,
+					Currency:     pos.currency,
+					RealizedGain: ToNZD(pos.realizedGain, pos.currency, fxRates),
+				})
+			}
 			continue
 		}
 		p := priceMap[ticker]

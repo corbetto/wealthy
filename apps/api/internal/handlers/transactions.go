@@ -69,13 +69,16 @@ func (h *TransactionHandler) delete(c *gin.Context) {
 }
 
 func (h *TransactionHandler) holdings(c *gin.Context) {
-	holdings, err := h.svc.ComputeHoldings()
+	all, err := h.svc.ComputeHoldings()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	if holdings == nil {
-		holdings = []models.Holding{}
+	open := make([]models.Holding, 0, len(all))
+	for _, holding := range all {
+		if holding.Quantity > 0 {
+			open = append(open, holding)
+		}
 	}
-	c.JSON(http.StatusOK, gin.H{"data": holdings})
+	c.JSON(http.StatusOK, gin.H{"data": open})
 }
