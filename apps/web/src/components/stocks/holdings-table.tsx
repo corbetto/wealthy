@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import { ArrowDownRight, ArrowUpRight } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -58,8 +59,8 @@ export function HoldingsTable() {
                   const dayPositive = h.day_change >= 0;
                   const hasFundamentals = h.market_cap || h.pe || h.earnings_date;
                   return (
-                    <>
-                      <tr key={h.ticker} className={cn("transition-colors hover:bg-accent/30", !hasFundamentals && "border-b border-border")}>
+                    <React.Fragment key={h.ticker}>
+                      <tr className={cn("transition-colors hover:bg-accent/30", !hasFundamentals && "border-b border-border")}>
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-3">
                             <TickerIcon ticker={h.ticker} size="sm" />
@@ -97,7 +98,7 @@ export function HoldingsTable() {
                         </td>
                       </tr>
                       {hasFundamentals && (
-                        <tr key={`${h.ticker}-fundamentals`} className="border-b border-border">
+                        <tr className="border-b border-border">
                           <td colSpan={6} className="px-6 pb-3 pt-0">
                             <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
                               {h.market_cap ? (
@@ -114,7 +115,7 @@ export function HoldingsTable() {
                           </td>
                         </tr>
                       )}
-                    </>
+                    </React.Fragment>
                   );
                 })}
               </tbody>
