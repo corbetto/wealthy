@@ -50,7 +50,7 @@ export function HoldingsTable() {
                   <th className="px-4 py-3 text-right font-medium text-muted-foreground">Avg Cost</th>
                   <th className="px-4 py-3 text-right font-medium text-muted-foreground">Price</th>
                   <th className="px-4 py-3 text-right font-medium text-muted-foreground">Value (NZD)</th>
-                  <th className="px-6 py-3 text-right font-medium text-muted-foreground">Return</th>
+                  <th className="px-6 py-3 text-right font-medium text-muted-foreground">Return (NZD)</th>
                 </tr>
               </thead>
               <tbody>
