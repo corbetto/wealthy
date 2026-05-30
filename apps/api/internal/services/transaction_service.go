@@ -203,6 +203,9 @@ func (s *TransactionService) ComputeHoldings() ([]models.Holding, error) {
 			DayChange:         dayChangeNZD,
 			DayChangePct:      dayChangePct,
 			PriceStale:        priceStale,
+			MarketCap:         p.MarketCap,
+			PE:                p.TrailingPE,
+			EarningsDate:      p.EarningsDate,
 		})
 	}
 

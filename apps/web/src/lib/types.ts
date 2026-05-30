@@ -43,6 +43,9 @@ export interface Holding {
   realized_gain: number;
   day_change: number;
   day_change_pct: number;
+  market_cap?: number;
+  pe?: number;
+  earnings_date?: string;
 }
 
 export interface PortfolioSummary {

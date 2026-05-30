@@ -119,10 +119,14 @@ func (y *YahooProvider) setHeaders(req *http.Request) {
 type yahooQuoteResponse struct {
 	QuoteResponse struct {
 		Result []struct {
-			Symbol             string  `json:"symbol"`
-			RegularMarketPrice float64 `json:"regularMarketPrice"`
-			PreviousClose      float64 `json:"regularMarketPreviousClose"`
-			Currency           string  `json:"currency"`
+			Symbol                  string  `json:"symbol"`
+			RegularMarketPrice      float64 `json:"regularMarketPrice"`
+			PreviousClose           float64 `json:"regularMarketPreviousClose"`
+			Currency                string  `json:"currency"`
+			MarketCap               float64 `json:"marketCap"`
+			TrailingPE              float64 `json:"trailingPE"`
+			EarningsTimestamp       int64   `json:"earningsTimestamp"`
+			EarningsTimestampStart  int64   `json:"earningsTimestampStart"`
 		} `json:"result"`
 		Error interface{} `json:"error"`
 	} `json:"quoteResponse"`
@@ -185,13 +189,26 @@ func (y *YahooProvider) FetchPrices(tickers []string) ([]models.MarketPrice, err
 		if r.RegularMarketPrice == 0 {
 			continue
 		}
-		prices = append(prices, models.MarketPrice{
+		mp := models.MarketPrice{
 			Ticker:        r.Symbol,
 			Price:         r.RegularMarketPrice,
 			PreviousClose: r.PreviousClose,
 			Currency:      r.Currency,
+			MarketCap:     r.MarketCap,
+			TrailingPE:    r.TrailingPE,
 			FetchedAt:     now,
-		})
+		}
+		// Prefer the start of the earnings estimate window; fall back to the
+		// exact timestamp. Only set if the date is in the future.
+		ts := r.EarningsTimestampStart
+		if ts == 0 {
+			ts = r.EarningsTimestamp
+		}
+		if ts > 0 {
+			t := time.Unix(ts, 0).UTC()
+			mp.EarningsDate = &t
+		}
+		prices = append(prices, mp)
 	}
 	return prices, nil
 }

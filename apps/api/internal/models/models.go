@@ -59,12 +59,15 @@ type Holding struct {
 	MarketValueNZD float64  `json:"market_value_nzd"` // converted to NZD
 	CostBasis      float64  `json:"cost_basis"`       // total cost in native currency
 	CostBasisNZD   float64  `json:"cost_basis_nzd"`
-	UnrealizedGain    float64 `json:"unrealized_gain"`     // in NZD
-	UnrealizedGainPct float64 `json:"unrealized_gain_pct"` // percentage
-	RealizedGain      float64 `json:"realized_gain"`       // in NZD, from completed sells
-	DayChange         float64 `json:"day_change"`          // in NZD
-	DayChangePct      float64 `json:"day_change_pct"`
-	PriceStale        bool    `json:"price_stale"` // true when no live price available, cost basis used instead
+	UnrealizedGain    float64    `json:"unrealized_gain"`     // in NZD
+	UnrealizedGainPct float64    `json:"unrealized_gain_pct"` // percentage
+	RealizedGain      float64    `json:"realized_gain"`       // in NZD, from completed sells
+	DayChange         float64    `json:"day_change"`          // in NZD
+	DayChangePct      float64    `json:"day_change_pct"`
+	PriceStale        bool       `json:"price_stale"` // true when no live price available, cost basis used instead
+	MarketCap         float64    `json:"market_cap"`
+	PE                float64    `json:"pe"`
+	EarningsDate      *time.Time `json:"earnings_date,omitempty"`
 }
 
 // PortfolioSummary is the high-level view of total wealth.
@@ -96,11 +99,14 @@ type PortfolioSnapshot struct {
 
 // MarketPrice holds the latest price data for a ticker.
 type MarketPrice struct {
-	Ticker        string    `json:"ticker"`
-	Price         float64   `json:"price"`
-	PreviousClose float64   `json:"previous_close"`
-	Currency      string    `json:"currency"`
-	FetchedAt     time.Time `json:"fetched_at"`
+	Ticker        string     `json:"ticker"`
+	Price         float64    `json:"price"`
+	PreviousClose float64    `json:"previous_close"`
+	Currency      string     `json:"currency"`
+	MarketCap     float64    `json:"market_cap"`
+	TrailingPE    float64    `json:"trailing_pe"`
+	EarningsDate  *time.Time `json:"earnings_date,omitempty"`
+	FetchedAt     time.Time  `json:"fetched_at"`
 }
 
 // FXRate holds a currency pair exchange rate relative to NZD.
